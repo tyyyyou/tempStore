@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style type="text/css">
+      .lo-bg{
+        position: relative;
+        width: 750px;
+        height: 563px;
+        background: url(./lottery-bg.png) no-repeat;
+      }  
+      .lo-bg .lo-arrow{
+        position: absolute;
+        top: 165px;
+        left: 238px;
+        width: 118px;
+        height: 138px;
+        background: url(./arrow.png) no-repeat;
+      }   
+    </style>
+    <style type="text/css" id="lo-rotate"></style>
+</head>
+<body>
+	<div class="lo-bg">
+     <div class="lo-arrow" id="lo-arrow"></div>   
+    </div>
+    <button id="btn-start">开始抽奖</button>
+    
+	<script type="text/javascript" src="http://ajax.springairlines.com/cache/js/sea-master5.js?v=20170415010"></script>
+    <script>
+		define('fn-lottery', function(require, exports){
+			function lottery(conf){
+				var defaultConf = {
+                    el: $("#lo-arrow"),
+					originSpeed: 50,
+					speedStep: 200,
+                    currentDeg: 0,
+                    eachDeg: 30,
+                    // 各奖品对应的角度
+                    degObj: {
+                        "1": 30,
+                        "2": 90,
+                        "3": 150,
+                        "4": 210,
+                        "5": 270,
+                        "6": 330
+                    }
+				};
+				this.config = $.extend(true, {}, defaultConf, conf);
+				this.posIndex = 0;
+				this.leastLastTime = (360 / this.config.eachDeg) * this.config.originSpeed * 2;
+			}
+			
+			exports.init = function(conf){
+				return new lottery(conf);
+			}
+			
+			lottery.prototype.stop = function(stopKey, callback){
+				var _this = this;
+
+				//at least three round, and then stop
+				_this.endTime = new Date();
+        		var diffMseconds = _this.endTime - _this.startTime;
+        		if(diffMseconds < _this.leastLastTime){
+        			console.log((new Date(_this.endTime)))
+        			console.log(_this.endTime.getTime() + _this.leastLastTime)
+        			setTimeout(function(){
+        				_this.stopcallback(stopKey, callback);
+        			}, (_this.endTime.getTime() + _this.leastLastTime - _this.endTime.getTime()));
+        		}else{
+					_this.stopcallback(stopKey, callback);
+        		}
+			}		
+
+			lottery.prototype.stopcallback = function(stopKey, callback){
+				var _this = this;
+				_this.isStop = true;
+				_this.stopDeg = _this.config.degObj[stopKey];
+				_this.callback = callback;
+        		_this.currentSpeed += this.config.speedStep;
+			}
+			
+			lottery.prototype.start = function(){
+				var _this = this;
+				_this.isStop = false;
+				this.currentSpeed = this.config.originSpeed;
+				this.startTime = new Date();
+
+                _this.timer = setInterval(function(){
+                    if(_this.isStop && _this.config.currentDeg == _this.stopDeg){
+                        clearInterval(_this.timer);
+                        _this.callback && _this.callback();
+                    }else{
+                    	if(!_this.config.el.hasClass("rotate")){
+							_this.config.el.addClass("rotate");
+                    	}
+                        _this.config.currentDeg = _this.config.currentDeg % 360;
+                        _this.config.currentDeg += _this.config.eachDeg;
+                        var cssText = "rotate(" + (_this.config.currentDeg) + "deg)";
+                        var _str = ".rotate{transform:"+ cssText+";-ms-transform:"+cssText+";-moz-transform:"+cssText+";-webkit-transform:"+cssText+";-o-transform:"+cssText+"}";
+                        $(document.head).find("#lo-rotate").html(_str);
+                    }
+                }, _this.currentSpeed);
+			}
+		});
+
+		seajs.use(['fn-lottery', 'jquery'], function(Lottery, $){
+			var lotteryInit = Lottery.init({});
+			$("#btn-start").click(function(){
+				lotteryInit.start();
+				setTimeout(function(){
+					var stopKey = Math.ceil(Math.random()*5) + 1;
+					console.log(stopKey)
+					lotteryInit.stop(stopKey, function(){
+						alert("您抽中了"+stopKey);
+					});
+				}, 500);
+			});
+		});		
+    </script>
+</body>
+</html>
