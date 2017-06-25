@@ -1,0 +1,205 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Document</title>
+	<style>
+
+	</style>
+</head>
+<body>
+	   <div class="p-countdown">
+            <span class="count-text" id="J_count_text">活动已结束</span>
+            <span class="count-timer">
+                <em class="timer-item timer-item-num J_timer_day">0</em>
+                <em class="timer-item timer-item-num J_timer_day">0</em><em class="timer-item timer-item-text">天</em>
+                <em class="timer-item timer-item-num J_timer_hour">0</em>
+                <em class="timer-item timer-item-num J_timer_hour">0</em><em class="timer-item timer-item-text">时</em>
+                <em class="timer-item timer-item-num J_timer_minute">0</em>
+                <em class="timer-item timer-item-num J_timer_minute">0</em><em class="timer-item timer-item-text">分</em>
+                <em class="timer-item timer-item-num J_timer_second">0</em>
+                <em class="timer-item timer-item-num J_timer_second">0</em><em class="timer-item timer-item-text">秒</em>
+            </span>
+            <a href="javascript:;" class="btn-rule" id="J_btnrule"></a>
+        </div>
+
+	<script type="text/javascript" src="http://ajax.springairlines.com/cache/js/sea-master5.js?v=20170415010"></script>
+    <script type="">
+    define("fn-timecountdown",function(require, exports, module) {
+    var $ = require('jquery');
+    var init = null;
+    var defaults = {
+        startTime : "",
+        endTime : "",
+        allEndTime : "",
+        diffTime : 0,
+        intervalDay : 0,
+        isCounting : true,
+        els : {
+            "countday" : "",
+            "counthour" : "",
+            "countminute" : "",
+            "countsecond" : ""
+        },
+        callback_before : "",
+        callback_ing : "",
+        callback_after : ""
+    };
+
+    var TimeCountdown = function(config) {
+        if( !(this instanceof TimeCountdown) ) return new TimeCountdown(config);
+        this.options = $.extend(true, {}, defaults, config);
+        this.flag_be = 0, this.flag_ing = 0, this.flag_af = 0, this.flag_daychange = 0;
+        this.cycleIndex = 1;
+
+        var $startEl = $(this.options.els.countday).parent().find("[data-start]");
+        var $endEl = $(this.options.els.countday).parent().find("[data-end]");
+        if($startEl.length && $endEl.length) {
+            this.options.startTime = $startEl.attr("data-start");
+            this.options.endTime = $startEl.attr("data-end");
+        }
+
+        this.startTime = new Date(this.options.startTime);
+        this.end = new Date(this.options.endTime);
+        this.allEnd = new Date(this.options.allEndTime);
+
+        init = this;
+        this.setTime();
+    };
+
+    $.extend(Number.prototype, {
+        zero: function (n) {
+            var n = parseInt(n, 10);
+            if (n > 0) {
+                if (n <= 9) {
+                    n = "0" + n;
+                }
+                return n + "";
+            } else {
+                return "00";
+            }
+        },
+    });
+
+    $.extend(TimeCountdown.prototype, {
+        sethtm : function (el, txt) {
+            var $el = $(el);
+            if($el.length > 1) {
+                var txt_ten = parseInt(txt / 10);
+                var txt_single = parseInt(txt % 10);
+                $el.eq(0).text(txt_ten);
+                $el.eq(1).text(txt_single);
+            }else {
+                $el.text(txt);
+            }
+        },
+        setTime: function () {
+            var that = init;
+            var opts = that.options;
+            var N = parseInt(opts.intervalDay);
+
+            var now = new Date(new Date().getTime() + opts.diffTime);
+
+            var pms = { sec: "00", mini: "00", hour: "00", day: "00" };
+            var dur = -1;
+            if (that.startTime > now) {
+                dur = Math.round((that.startTime.getTime() - now.getTime()) / 1000);
+                if(!that.flag_be) {
+                    that.flag_be = 1, that.flag_af = 0;
+                    if(opts.callback_before && typeof opts.callback_before == 'function') {
+                        opts.callback_before();
+                    }
+                }
+            }else if(now >= that.startTime && now < that.end) {
+                if(opts.isCounting) {
+                    dur = Math.round((that.end.getTime() - now.getTime()) / 1000);
+                }
+                if(!that.flag_ing) {
+                    that.flag_ing = 1, that.flag_be = 0;
+                    if(opts.callback_ing && typeof opts.callback_ing == 'function') {
+                        opts.callback_ing();
+                    }
+                }
+
+                if(!that.flag_daychange) {
+                    that.flag_daychange = 1;
+                    if(opts.callback_dayChange && typeof opts.callback_dayChange == 'function') {
+                        opts.callback_dayChange(that.cycleIndex);
+                    }            
+                }
+            }
+
+            if (dur > 0) { 
+                var dur1 = dur / 60, dur2 = dur1 / 60, dur3 = dur2 / 24;
+                pms.sec = new Number().zero(dur % 60);
+                pms.mini = Math.floor(dur1) > 0 ? new Number().zero(Math.floor(dur1) % 60) : "00";
+                pms.hour = Math.floor(dur2) > 0 ? new Number().zero(Math.floor(dur2) % 24) : "00";
+                pms.day = Math.floor(dur3) > 0 ? new Number().zero(Math.floor(dur3)) : "00";
+            } else {
+                if (now.getTime() > that.allEnd.getTime()) {
+                    if(opts.callback_after && typeof opts.callback_after == 'function') {
+                        opts.callback_after();
+                    }
+                    return;
+                } else {
+                    if (now.getTime() > that.end.getTime() && (that.startTime.getTime() + N * 86400000) < that.allEnd.getTime()) {
+                        that.startTime = new Date(that.startTime.getTime() + N * 86400000);
+                        that.end = new Date(that.end.getTime() + N * 86400000);
+                        that.flag_daychange = 0;
+                        that.cycleIndex++;
+                        that.setTime();
+                        return;
+                    }
+                }
+            }
+
+            that.sethtm(opts.els.countday, pms.day);
+            that.sethtm(opts.els.counthour, pms.hour);
+            that.sethtm(opts.els.countminute, pms.mini);
+            that.sethtm(opts.els.countsecond, pms.sec);
+
+            that.timer = setTimeout(that.setTime, 1000);
+        }
+    });
+
+    exports.TimeCountdown = TimeCountdown;
+});
+        seajs.use(['jquery','fn-timecountdown'], function ($,time) {
+            var $J_count_text=$("#J_count_text");
+var isStart = false;
+var nowTime = new Date();
+var tempTime = new Date().getTime();
+var diffTime = nowTime - tempTime;;
+time.TimeCountdown({
+    startTime: "2017/06/25 00:00:00",
+    endTime: "2017/06/26 00:00:00",
+    allEndTime: "2017/07/01 00:00:00",
+    diffTime: 0,
+    intervalDay: 1,
+    isCounting: true,
+    els: {
+        "countday": ".J_timer_day",
+        "counthour": ".J_timer_hour",
+        "countminute": ".J_timer_minute",
+        "countsecond": ".J_timer_second"
+    },
+    callback_before: function () {
+        isStart = false;
+        $J_count_text.text("距活动开始还剩下");
+    },
+    callback_ing: function () {
+        isStart = true;
+        $J_count_text.text("距活动结束还剩下");
+    },
+    callback_after: function () {
+        isStart = false;
+        $J_count_text.text("活动已结束");
+    },
+    callback_dayChange: function(dayIndex){
+        console.log("这是第"+dayIndex+"天");
+    }
+});
+        });
+    </script>
+</body>
+</html>
