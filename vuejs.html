@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <script src="https://cdn.bootcss.com/vue/2.5.9/vue.min.js"></script>
+    <title></title>
+    <style>
+        html, body{
+            font-size: 34px;
+        }
+        .seat-cont li{
+            height: 40px;
+            margin-bottom: 20px;
+            background: goldenrod;
+        }
+        .seat-cont li.active{
+            background: red;
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <div behavior="" direction="">
+            <span v-for="person in passengerList">
+                <span>{{person.name}}</span>
+                <span>{{person.seatPos}}</span>
+                <span>{{person.seatPrice}}</span>
+            </span>
+        </div>
+        <br/><br/>
+        <ul class="seat-cont">
+            <li v-for="(seat, index) in seatList" @click="toggleSelect(index)" :class="{active: seat.isSelected}"></li>
+        </ul>
+    </div>
+
+    <!--<div contentEditable="true"></div>-->
+    <script>
+        var vm = new Vue({
+            el: '#app',
+            data: {
+                currentPersonIndex: 0,
+                passengerList: [
+                    {
+                        name: '唐糖',
+                        seatPos: '--',
+                        seatPrice: '--',
+                        relateSeatIndex: -1
+                    },
+                    {
+                        name: '唐唐',
+                        seatPos: '--',
+                        seatPrice: '--',
+                        relateSeatIndex: -1
+                    },
+                    {
+                        name: '唐二妹',
+                        seatPos: '--',
+                        seatPrice: '--',
+                        relateSeatIndex: -1
+                    },
+                ],
+                seatList: [
+                    {
+                        seatPos: '1A',
+                        seatPrice: 120,
+                        isCanSelected: false,
+                        isSelected: false,
+                        relatePersonIndex: -1
+                    },
+                    {
+                        seatPos: '1B',
+                        seatPrice: 130,
+                        isCanSelected: true,
+                        isSelected: false,
+                        relatePersonIndex: -1
+                    },
+                    {
+                        seatPos: '1C',
+                        seatPrice: 140,
+                        isCanSelected: true,
+                        isSelected: false,
+                        relatePersonIndex: -1
+                    },
+                    {
+                        seatPos: '1D',
+                        seatPrice: 150,
+                        isCanSelected: true,
+                        isSelected: false,
+                        relatePersonIndex: -1
+                    },
+                    {
+                        seatPos: '1E',
+                        seatPrice: 150,
+                        isCanSelected: true,
+                        isSelected: false,
+                        relatePersonIndex: -1
+                    },
+                    {
+                        seatPos: '1F',
+                        seatPrice: 150,
+                        isCanSelected: true,
+                        isSelected: false,
+                        relatePersonIndex: -1
+                    }
+                ]
+            },
+            methods: {
+                toggleSelect: function(index){
+                    if(this.seatList[index].isCanSelected){
+                        console.log('此座位可选');
+                        if(this.seatList[index].isSelected){ //此座位已选定
+                            var tempPassengerArr = this.passengerList[this.seatList[index].relatePersonIndex];
+                            tempPassengerArr.relateSeatIndex = -1;
+                            tempPassengerArr.seatPos = '--';
+                            tempPassengerArr.seatPrice = '--';
+                        }else{ //此座位未选定
+                            if(this.currentPersonIndex < this.passengerList.length){ //非所有人都选择完座位
+                                var tempPassengerList = this.passengerList[this.currentPersonIndex];
+                                tempPassengerList.relateSeatIndex = index;
+                                tempPassengerList.seatPos = this.seatList[index].seatPos;
+                                tempPassengerList.seatPrice = this.seatList[index].seatPrice;
+                                this.seatList[index].relatePersonIndex = this.currentPersonIndex;
+                            }else{
+                                return false;
+                            }
+                        }
+                        this.seatList[index].isSelected = !this.seatList[index].isSelected;
+                    }else{
+                        console.log('此座位不可选');
+                    }
+                }
+            },
+            watch: {
+                passengerList: {
+                    handler: function(){
+                        var flag = 0, len = this.passengerList.length;
+                        for(var i=0;i< len;i++){
+                            if(this.passengerList[i].relateSeatIndex < 0){
+                                this.currentPersonIndex  = i;
+                                break;
+                            }else{
+                                flag++;
+                            }
+                        }
+                        if(flag == len){
+                            this.currentPersonIndex  = len + 1;
+                        }
+                    },
+                    deep: true
+                }
+
+            }
+        });
+    </script>
+</body>
+</html>
