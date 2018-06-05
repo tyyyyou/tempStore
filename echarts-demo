@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, height=device-height, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+    <meta name="format-detection" content="telephone=no, email=no"/>
+    <meta name="apple-mobile-web-app-capable" content="yes"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="renderer" content="webkit">
+    <title>dssdd</title>
+
+  
+</head>
+<body>
+<div id="app">
+    <div id="gaikuangDiv" style="height: 500px"></div>
+
+    <script type="text/javascript" src="echarts.common.min.js"></script>
+    <script type="text/javascript">
+myChart=echarts.init(document.getElementById('gaikuangDiv'));
+    option={
+        tooltip:{
+            trigger: 'axis',
+            axisPointer: {
+                type: 'cross',
+                crossStyle: {
+                    color: '#999'
+                }
+            }
+        },
+        legend: {
+            // data: ['蒸发量','降水量','平均温度']
+            data: []
+        },
+        xAxis: [{
+            type:'category',
+            data: ['普卡','银卡','金卡'],
+            axisPointer:{
+                type:'line'
+            },
+            name: '会员级别',
+            nameLocation: 'start'
+        },
+        {
+            type:'category',
+            data: ['1.0','1.5','1.8'],
+            axisPointer:{
+                type:'line'
+            },
+            name: '积分获取系数',
+            nameLocation: 'start',
+            position: 'bottom'
+        }],
+        yAxis: [{
+            type:'value',
+            name:'水量',
+            min: 0,
+            max: 250,
+            interval: 50,
+            axisLabel: {
+                formatter: '{value} ml'
+            },
+            show: false
+        },{
+            type:'value',
+            name:'温度',
+            min: 0,
+            max: 25,
+            interval: 5,
+            axisLabel: {
+                formatter: '{value} °C'
+            },
+            show: false
+        }],
+        series: [{
+            name:'蒸发量',
+            type:'bar',
+            data:[5.0, 10.0, 15.0]
+        },{
+            name:'平均温度',
+            type:'line',
+            yAxisIndex: 1,
+            data:[2.0, 2.2, 3.3],
+            itemStyle : { normal: {label : {show: true}}}
+        }]
+    };
+    myChart.setOption(option);
+        
+    </script>
+</body>
+</html>
